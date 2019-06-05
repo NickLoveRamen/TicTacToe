@@ -47,7 +47,7 @@ module.exports.display = function(title){
     for(i = 0;i < ROWS; i++){
         temp = i.toString() + " ║";
         for(j = 0; j < COLS; j++){
-            temp += " " + field[i][j] + ' ║';
+            temp += " " + field[j][i] + ' ║';
         }
         console.log(temp);
 

@@ -1,18 +1,18 @@
 //requires
 const TTT = require("./TTT_Field");
-const readline = require("readline").createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+const readline = require("readline");
 
 //would you like to play?
 module.exports.prompt = function (callback){
     TTT.clear();
     TTT.display("TIC TAC TOE");
 
-    readline.question('start a new game? (Y for yes, and other key to exit): ', (input) => {
-        //readline.close();
-    
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    rl.question('start a new game? (Y for yes, and other key to exit): ', (input) => {
+        rl.close();
         if(input == 'y' || input == 'Y'){
             //start a game
             callback(true)
@@ -21,17 +21,22 @@ module.exports.prompt = function (callback){
             //end
             callback(false)
         }
+
+        
     });
 }
 
 //ask if two player or vs computer
-module.exports.mode = function(callback){
+module.exports.mode = async function(callback){
     TTT.clear();
     TTT.display("TIC TAC TOE");
 
-    readline.question('2-player game or play against the computer? (t for 2-player, c for computer, any other key to quit): ', (input) => {
-        //readline.close();
-    
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    rl.question('2-player game or play against the computer? (t for 2-player, c for computer, any other key to quit): ', function (input){
+        rl.close();
         if(input == "t" || input == "T"){
             callback("t");
         }
@@ -40,6 +45,8 @@ module.exports.mode = function(callback){
         }else{
             callback("broke");
         }
+
+        
     });
 }
 
@@ -48,69 +55,95 @@ module.exports.play = async function(mode){
     var winner = "";
 
     if(mode == "t"){
-        winner = twoplayer();
-        await congradulate(winner);
+        winner = await twoplayer();
+        //await congradulate(winner);
     }
     else if(mode == "c"){
-        winner = oneplayer();
-        await congradulate(winner);
+        winner = await oneplayer()
+        //await congradulate(winner);
     }else{
         console.log("Something wrong in gm.play(mode)");
     }
+
+    console.log(winner + "wins");
 }
 
 //play 2 player
-async function twoplayer(){
+async function twoplayer(callback){
     var gamestate = {"over" : false,
                      "winner" : ""};
 
     while(!gamestate.over){
         //X player (player1) goes first
-        await promptP1();
+        await prompt(TTT.X);
 
         //check if game over
         isOver(function(res){
+            console.log(res.over,res.winner);
+            var waitTill = new Date(new Date().getTime() + seconds * 1000);
+            while(waitTill > new Date()){}
             gamestate = res;
         });
+            
 
         if(!gamestate.over){
             //O player (player2) goes second
-            await promptP2();
-
+            await prompt(TTT.O);
             //check if game over
             isOver(function(res){
                 gamestate = res;
             });
         }
-        
     }
     
-    return gamestate.winner;
-}
-
-function promptP1(){
-    TTT.clear();
-    TTT.display("PLAYER ONE'S TURN");
-    readline.question('Enter coordinates to place a ' + TTT.X + ' (x y):', (input) => {
-        //readline.close();
-        
-        input = input.split(" ");
-        TTT.placeSymbol(input[0],input[1],TTT.X);
+    return new Promise((resolve) => {
+        resolve(gamestate.winner);
     });
 }
 
- function promptP2(){
+ function prompt(symbol){
+    var player;
+    if(symbol == TTT.X) player = "PLAYER ONE"
+    else if (symbol == TTT.O) player = "PLAYER TWO"
+
     TTT.clear();
-    TTT.display("PLAYER TWO'S TURN");
-    readline.question('Enter coordinates to place a ' + TTT.Y + ' (x y):', (input) => {
-        //readline.close();
-        
-        input = input.split(" ");
-        TTT.placeSymbol(input[0],input[1],TTT.Y);
-    });
+    TTT.display("PLAYER " + player + "'S TURN");
+
+    return new Promise((async function (resolve){
+        var coords = await getCoordinates(symbol);
+        while (coords == null){
+            coords = await getCoordinates(symbol);
+        }
+        TTT.placeSymbol(coords.x,coords.y,symbol);
+        resolve();
+    }));
+    
 }
 
-function isOver(){
+function getCoordinates(symbol){
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    return new Promise((resolve) => {
+        rl.question('Enter coordinates to place a ' + symbol + ' (x y):', (input) => {
+            rl.close();
+            input = input.split(" ");
+            if((input[0] >= TTT.ROWS || input[0] < 0) || (input[1] >= TTT.COLS || input[1] < 0)){
+                console.log("Those coordinates are out of bounds, try again: ");
+                resolve(null);
+            }else if (TTT.getSymbol(input[0],input[1]) != TTT.BLANK){
+                console.log("that spot is taken, try again: ");
+                resolve(null);
+            }else{
+                resolve({"x" : input[0],"y" : input[1]});
+            }
+        });
+    })
+    
+}
+
+function isOver(callback){
     // cardinal directions
     const E = 0;
     const SE = 1;
@@ -125,7 +158,10 @@ function isOver(){
             if(TTT.getSymbol(i,j) == TTT.X){
                 //check E (to the right)
                 if(getConsec(E,TTT.X,i,j,true) >= TTT.WIN){
-                    return {"over" : true,"winner" : "PLAYER1"}
+                    console.log("yay");
+                    var waitTill = new Date(new Date().getTime() + 1 * 1000);
+                    while(waitTill > new Date()){}
+                    callback( {"over" : true,"winner" : "PLAYER1"});
                 }
 
                 //check SE (down and to right)
@@ -143,24 +179,24 @@ function isOver(){
                     return {"over" : true,"winner" : "PLAYER1"}
                 }
 
-            }else if(TTT.getSymbol(i,j) == TTT.Y){
+            }else if(TTT.getSymbol(i,j) == TTT.O){
                 //check E (to the right)
-                if(getConsec(E,TTT.Y,i,j,true) >= TTT.WIN){
+                if(getConsec(E,TTT.O,i,j,true) >= TTT.WIN){
                     return {"over" : true,"winner" : "PLAYER2"}
                 }
 
                 //check SE (down and to right)
-                if(getConsec(SE,TTT.Y,i,j,true) >= TTT.WIN){
+                if(getConsec(SE,TTT.O,i,j,true) >= TTT.WIN){
                     return {"over" : true,"winner" : "PLAYER2"}
                 }
 
                 //check S (down)
-                if(getConsec(S,TTT.Y,i,j,true) >= TTT.WIN){
+                if(getConsec(S,TTT.O,i,j,true) >= TTT.WIN){
                     return {"over" : true,"winner" : "PLAYER2"}
                 }
 
                 //check SW (down and left)
-                if(getConsec(SW,TTT.Y,i,j,true) >= TTT.WIN){
+                if(getConsec(SW,TTT.O,i,j,true) >= TTT.WIN){
                     return {"over" : true,"winner" : "PLAYER2"}
                 }
 
@@ -226,7 +262,6 @@ function getConsec(direction,symbol,startx,starty,reset){
         getConsec.counter++;
         getConsec(direction,symbol,newx,newy,false);
     }
-
     return getConsec.counter;
 }
 
