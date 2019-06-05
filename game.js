@@ -1,32 +1,15 @@
 //requires
-const TTT = require("./TTT_Field");
+const gm = require("./src/Game_Manager");
 
 //main
-TTT.clear();
-TTT.display("TIC TAC TOE");
-
-//game manager
-
-//get input
-var state;
-const readline = require('readline').createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-
-readline.question('start a new game? (Y for yes, and other key to exit): ', (input) => {
-    readline.close();
-
-    if(input == 'y' || input == 'Y'){
-        //start a game
-        state = "go"
-    }
-    else{
-        //end
-        state = "end"
+//ask if want to play,determine game mode, then play
+gm.prompt(function (res){
+    if(res){
+        gm.mode(function(res){
+            if(res != "") gm.play(res);
+        });
     }
 });
-
 
 
 

@@ -1,6 +1,7 @@
 //field
 const ROWS = 3;
 const COLS = 3;
+const WIN = 3;
 
 var field = [[" "," "," "],[" "," "," "],[" "," "," "]];
 
@@ -9,7 +10,7 @@ const X = 'X';
 const O = 'O';
 const BLANK = " ";
 
-module.exports = {X,O,BLANK,ROWS,COLS};
+module.exports = {X,O,BLANK,ROWS,COLS,WIN};
 
 //clear function
 module.exports.clear = function(){
@@ -74,4 +75,8 @@ module.exports.display = function(title){
 //place symbol function
 module.exports.placeSymbol = function(x,y,sym){
     field [x][y] = sym;
+}
+
+module.exports.getSymbol = function(x,y){
+    return field[x][y];
 }
