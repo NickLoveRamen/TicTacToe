@@ -12,6 +12,9 @@ module.exports.prompt = function (callback){
         input: process.stdin,
         output: process.stdout
     });
+    
+    console.log("UI TESING MODE\n\n")
+
     rl.question('start a new game? (Y for yes, and other key to exit): ', (input) => {
         rl.close();
         if(input == 'y' || input == 'Y'){
@@ -69,7 +72,7 @@ module.exports.play = async function(mode){
 }
 
 //play 2 player
-async function twoplayer(callback){
+async function twoplayer(){
     var gamestate = {"over" : false,
                      "winner" : ""};
 
