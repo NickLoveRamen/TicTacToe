@@ -3,7 +3,7 @@ const ROWS = 3;
 const COLS = 3;
 const WIN = 3;
 
-var field = [[" "," "," "],[" "," "," "],[" "," "," "]];
+var field = [];
 
 //symbol definitions
 const X = 'X';
@@ -11,6 +11,19 @@ const O = 'O';
 const BLANK = " ";
 
 module.exports = {X,O,BLANK,ROWS,COLS,WIN};
+
+module.exports.init = function(){
+    field.length = ROWS;
+
+    for (var i = 0; i < ROWS; i++){
+        var temp = [];
+        temp.length = COLS;
+        for(var j = 0; j < COLS; j++){
+            temp[j] = BLANK;
+        }
+        field[i] = temp;
+    }
+}
 
 //clear function
 module.exports.clear = function(){
@@ -28,7 +41,12 @@ module.exports.display = function(title){
     //coordinates X
     temp = "    ";
     for(i = 0; i < COLS; i++){
-        temp += i.toString() + "   ";
+        //handle double digit coordinates
+        if(i >= 10){
+            temp += i.toString() + "  ";
+        }else{
+            temp += i.toString() + "   ";
+        }
     }
     console.log(temp);
 
@@ -45,14 +63,20 @@ module.exports.display = function(title){
     //print each row
     temp = "";
     for(i = 0;i < ROWS; i++){
-        temp = i.toString() + " ║";
+        //handle double digit coordinates
+        if(i >= 10){
+            temp = i.toString() + '║';
+        }else {
+            temp = i.toString() + " ║";
+        }
+
         for(j = 0; j < COLS; j++){
             temp += " " + field[j][i] + ' ║';
         }
         console.log(temp);
 
         //horizontal spacer
-        if(i != 2){
+        if(i < ROWS -1){
             temp = "  ╠"
             for(j = 0; j < COLS - 1; j++){
                 temp += "═══╬"

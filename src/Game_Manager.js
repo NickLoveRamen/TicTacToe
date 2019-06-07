@@ -4,6 +4,7 @@ const readline = require("readline");
 
 //would you like to play?
 module.exports.prompt = function (callback){
+    TTT.init();
     TTT.clear();
     TTT.display("TIC TAC TOE");
 
@@ -56,7 +57,8 @@ module.exports.play = async function(mode){
 
     if(mode == "t"){
         winner = await twoplayer();
-        //await congradulate(winner);
+        TTT.clear();
+        TTT.display(winner + " WINS!")
     }
     else if(mode == "c"){
         winner = await oneplayer()
@@ -64,8 +66,6 @@ module.exports.play = async function(mode){
     }else{
         console.log("Something wrong in gm.play(mode)");
     }
-
-    console.log(winner + "wins");
 }
 
 //play 2 player
@@ -79,9 +79,6 @@ async function twoplayer(callback){
 
         //check if game over
         isOver(function(res){
-            console.log(res.over,res.winner);
-            var waitTill = new Date(new Date().getTime() + seconds * 1000);
-            while(waitTill > new Date()){}
             gamestate = res;
         });
             
@@ -158,46 +155,43 @@ function isOver(callback){
             if(TTT.getSymbol(i,j) == TTT.X){
                 //check E (to the right)
                 if(getConsec(E,TTT.X,i,j,true) >= TTT.WIN){
-                    console.log("yay");
-                    var waitTill = new Date(new Date().getTime() + 1 * 1000);
-                    while(waitTill > new Date()){}
                     callback( {"over" : true,"winner" : "PLAYER1"});
                 }
 
                 //check SE (down and to right)
                 if(getConsec(SE,TTT.X,i,j,true) >= TTT.WIN){
-                    return {"over" : true,"winner" : "PLAYER1"}
+                    callback({"over" : true,"winner" : "PLAYER1"});
                 }
 
                 //check S (down)
                 if(getConsec(S,TTT.X,i,j,true) >= TTT.WIN){
-                    return {"over" : true,"winner" : "PLAYER1"}
+                    callback({"over" : true,"winner" : "PLAYER1"})
                 }
 
                 //check SW (down and left)
                 if(getConsec(SW,TTT.X,i,j,true) >= TTT.WIN){
-                    return {"over" : true,"winner" : "PLAYER1"}
+                    callback({"over" : true,"winner" : "PLAYER1"});
                 }
 
             }else if(TTT.getSymbol(i,j) == TTT.O){
                 //check E (to the right)
                 if(getConsec(E,TTT.O,i,j,true) >= TTT.WIN){
-                    return {"over" : true,"winner" : "PLAYER2"}
+                    callback({"over" : true,"winner" : "PLAYER2"});
                 }
 
                 //check SE (down and to right)
                 if(getConsec(SE,TTT.O,i,j,true) >= TTT.WIN){
-                    return {"over" : true,"winner" : "PLAYER2"}
+                    callback({"over" : true,"winner" : "PLAYER2"});
                 }
 
                 //check S (down)
                 if(getConsec(S,TTT.O,i,j,true) >= TTT.WIN){
-                    return {"over" : true,"winner" : "PLAYER2"}
+                    callback({"over" : true,"winner" : "PLAYER2"});
                 }
 
                 //check SW (down and left)
                 if(getConsec(SW,TTT.O,i,j,true) >= TTT.WIN){
-                    return {"over" : true,"winner" : "PLAYER2"}
+                    callback({"over" : true,"winner" : "PLAYER2"});
                 }
 
             }
