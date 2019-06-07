@@ -1,21 +1,29 @@
 //requires
 const TTT = require("./TTT_Field");
 const readline = require("readline");
+const UI = require("./UI_Manager");
 
 //would you like to play?
-module.exports.prompt = function (callback){
+module.exports.prompt = async function (){
     TTT.init();
     TTT.clear();
     TTT.display("TIC TAC TOE");
 
-    var rl = readline.createInterface({
+    /* var rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
-    });
+    }); */
     
-    console.log("UI TESING MODE\n\n")
+    console.log("before await")
 
-    rl.question('start a new game? (Y for yes, and other key to exit): ', (input) => {
+    
+    //test the UI
+    var result = await UI.displayOptionsReturnSelected("TICTACTOE",["2 PLAYER GAME","VERSUS COMPUTER","QUIT"]);
+
+    console.log("after await");
+    return("result");
+
+    /* rl.question('start a new game? (Y for yes, and other key to exit): ', (input) => {
         rl.close();
         if(input == 'y' || input == 'Y'){
             //start a game
@@ -27,7 +35,7 @@ module.exports.prompt = function (callback){
         }
 
         
-    });
+    }); */
 }
 
 //ask if two player or vs computer
