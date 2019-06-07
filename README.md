@@ -1,15 +1,15 @@
  # TicTacToe
 
- A basic TicTac Toe game inside the terminal
+ A basic TicTacToe game inside the terminal
 
  ## Usage
 
  `npm start`
 
 
- ## config
+ ## Config
 
- edit `src/TTT__field.js` :
+ Edit the constants in `/src/TTT__field.js` 
 
  `ROWS` for number of rows,
  
@@ -23,7 +23,7 @@
  
  `O` for player 2 symbol
  
- _symbols can be any ascii character_
+ _Symbols can be any ascii character_
 
 
 
