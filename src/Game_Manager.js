@@ -3,57 +3,86 @@ const TTT = require("./TTT_Field");
 const readline = require("readline");
 const UI = require("./UI_Manager");
 
-//would you like to play?
-module.exports.prompt = function (){
+//start the program by getting game mode, then moving to appropriate function
+function start(){
+    //initialize an empty board
     TTT.init();
-    TTT.clear();
-    TTT.display("TIC TAC TOE");
 
-    //test the UI
-    return UI.displayOptionsReturnSelected("TICTACTOE",["2 PLAYER GAME","VERSUS COMPUTER","QUIT"])
-        
-}
+    //define codes for game types
+    const twoPlayerString = '2 PLAYER GAME';
+    const onePlayerString = 'VERSUS COMPUTER';
+    const quit = 'QUIT';
 
-//ask if two player or vs computer
-module.exports.mode = async function(callback){
-    TTT.clear();
-    TTT.display("TIC TAC TOE");
+    //get game mode
+    UI.displayOptionsReturnSelected("TIC TAC TOE",[twoPlayerString,onePlayerString,quit],(res) =>{
+        //once we get a selection, transition to the next state
+        switch (res){
+            case twoPlayerString : {
+                console.log("Game_manager about to run playTwoPlayer();")
+                playTwoPlayer();
+                break;
+            }
+            case onePlayerString : {
 
-    var rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    rl.question('2-player game or play against the computer? (t for 2-player, c for computer, any other key to quit): ', function (input){
-        rl.close();
-        if(input == "t" || input == "T"){
-            callback("t");
+                break;
+            }
+            case quit : {
+                process.exit();
+                break;
+            }
         }
-        else if(input == "c" || input == "C"){
-            callback("c");
-        }else{
-            callback("broke");
-        }
+    })
+}
 
-        
+//two player game
+function playTwoPlayer(){
+    //define game states
+    const state_WIN = 'WIN';
+    const state_TIE = 'TIE';
+    const state_IP = 'IN PROGRESS';
+
+    //keep track of current state
+    var game_state = state_IP;
+
+    //keep track of who won
+    var winner = 'unknown';
+
+    //alternate between player one and player two
+    while (game_state == state_IP){
+        //prompt player 1(X) and get thier coordinate selection
+        console.log("in main game loop. setting game stte to TIE...");
+        game_state = state_TIE;
+        //insert their move
+
+        //check if game over (win or tie)
+
+        //prompt player 2(O) and get thier coordinate selection
+
+        //insert their move
+
+        //check if game over (win or tie)
+    }
+
+    //give an ending message based on gamestate
+    var endingMessage = '';
+    if(game_state != state_TIE){
+        endingMessage = winner + ' WINS!';
+    }
+    else endingMessage = 'TIE GAME';
+
+    //prompt for new game or quit
+    const playAgain = 'PLAY AGAIN';
+    const quit = 'QUIT';
+
+    UI.displayOptionsReturnSelected(endingMessage,[playAgain,quit],(res)=>{
+        //send them to the start screen
+        if (res == playAgain){
+            start();
+        }else process.exit(); //if not, end the program
     });
 }
 
-//play the game based on what mode
-module.exports.play = async function(mode){
-    var winner = "";
-
-    if(mode == "t"){
-        winner = await twoplayer();
-        TTT.clear();
-        TTT.display(winner + " WINS!")
-    }
-    else if(mode == "c"){
-        winner = await oneplayer()
-        //await congradulate(winner);
-    }else{
-        console.log("Something wrong in gm.play(mode)");
-    }
-}
+//one player game
 
 //play 2 player
 async function twoplayer(){
@@ -91,7 +120,7 @@ async function twoplayer(){
     else if (symbol == TTT.O) player = "PLAYER TWO"
 
     TTT.clear();
-    TTT.display("PLAYER " + player + "'S TURN");
+    TTT.display(player + "'S TURN",-1,-1);
 
     return new Promise((async function (resolve){
         var coords = await getCoordinates(symbol);
@@ -134,60 +163,68 @@ function isOver(callback){
     const S = 2;
     const SW = 3;
 
+    //gamestate to be returned
+    var gamestate = {"over" : false,
+                     "winner" : ""};
+    
     //iterate through array and check for TTT.win number of consecutive symbols
-    var i,j;
+    var i,j,symbol;
+
+    //keep track if all spaces have been filled
+    var full = true; //assume it is filled until we encounter a TTT.BLANK space
     for(i = 0; i < TTT.ROWS; i++){
         for(j = 0; j < TTT.COLS; j++){
-            //see if a symbol
-            if(TTT.getSymbol(i,j) == TTT.X){
+            //check if space is blank
+            if(symbol = TTT.getSymbol(i,j) == TTT.BLANK){
+                full = false;
+            }else{//symbol is either TTT.X or TTT.O
                 //check E (to the right)
-                if(getConsec(E,TTT.X,i,j,true) >= TTT.WIN){
-                    callback( {"over" : true,"winner" : "PLAYER1"});
+                if(getConsec(E,symbol,i,j,true) >= TTT.WIN){
+                    gamestate.over = true;
+                    gamestate.winner = symbol;
+                    callback(gamestate);
                 }
 
                 //check SE (down and to right)
-                if(getConsec(SE,TTT.X,i,j,true) >= TTT.WIN){
-                    callback({"over" : true,"winner" : "PLAYER1"});
+                if(getConsec(SE,symbol,i,j,true) >= TTT.WIN){
+                    gamestate.over = true;
+                    gamestate.winner = symbol;
+                    callback(gamestate);
                 }
 
                 //check S (down)
-                if(getConsec(S,TTT.X,i,j,true) >= TTT.WIN){
-                    callback({"over" : true,"winner" : "PLAYER1"})
+                if(getConsec(S,symbol,i,j,true) >= TTT.WIN){
+                    gamestate.over = true;
+                    gamestate.winner = symbol;
+                    callback(gamestate);
                 }
 
                 //check SW (down and left)
-                if(getConsec(SW,TTT.X,i,j,true) >= TTT.WIN){
-                    callback({"over" : true,"winner" : "PLAYER1"});
-                }
-
-            }else if(TTT.getSymbol(i,j) == TTT.O){
-                //check E (to the right)
-                if(getConsec(E,TTT.O,i,j,true) >= TTT.WIN){
-                    callback({"over" : true,"winner" : "PLAYER2"});
-                }
-
-                //check SE (down and to right)
-                if(getConsec(SE,TTT.O,i,j,true) >= TTT.WIN){
-                    callback({"over" : true,"winner" : "PLAYER2"});
-                }
-
-                //check S (down)
-                if(getConsec(S,TTT.O,i,j,true) >= TTT.WIN){
-                    callback({"over" : true,"winner" : "PLAYER2"});
-                }
-
-                //check SW (down and left)
-                if(getConsec(SW,TTT.O,i,j,true) >= TTT.WIN){
-                    callback({"over" : true,"winner" : "PLAYER2"});
+                if(getConsec(SW,symbol,i,j,true) >= TTT.WIN){
+                    gamestate.over = true;
+                    gamestate.winner = symbol;
+                    callback(gamestate);
                 }
 
             }
         }
+    }//end checking each index
+
+    //see if TIE
+    if(full && !gamestate.over){//board is full but we havnt found a winner
+        gamestate.over = true;
+        callback(gamestate);
     }
 
 }
 
 function getConsec(direction,symbol,startx,starty,reset){
+    // cardinal directions
+    const E = 0;
+    const SE = 1;
+    const S = 2;
+    const SW = 3;
+
     //reset when called from isOver
     if(reset){
         getConsec.counter = 1;
@@ -198,7 +235,7 @@ function getConsec(direction,symbol,startx,starty,reset){
 
     //verify that the next space in the direction exists, then check
     switch(direction){
-        case 0 : { //East
+        case E : { //East
             if(startx +1 < TTT.ROWS){
                 if(TTT.getSymbol(startx+1,starty) == symbol){
                     found = true;
@@ -207,7 +244,7 @@ function getConsec(direction,symbol,startx,starty,reset){
             }
             break;
         }
-        case 1 : {//South East
+        case SE : {//South East
             if(startx +1 < TTT.ROWS && starty +1 < TTT.COLS){
                 if(TTT.getSymbol(startx+1,starty+1) == symbol){
                     found = true;
@@ -217,7 +254,7 @@ function getConsec(direction,symbol,startx,starty,reset){
             }
             break;
         }
-        case 2 : {//south
+        case S : {//south
             if(starty +1 < TTT.COLS){
                 if(TTT.getSymbol(startx,starty+1) == symbol){
                     found = true;
@@ -226,7 +263,7 @@ function getConsec(direction,symbol,startx,starty,reset){
             }
             break;
         }
-        case 3 : {//south west
+        case SW : {//south west
             if(startx -1 >= 0 && starty +1 < TTT.COLS){
                 if(TTT.getSymbol(startx-1,starty+1) == symbol){
                     found = true;
@@ -246,7 +283,4 @@ function getConsec(direction,symbol,startx,starty,reset){
     return getConsec.counter;
 }
 
-function congradulate(winner){
-    TTT.clear();
-    TTT.display(winner + " WINS!");
-}
+module.exports = {start};
