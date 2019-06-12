@@ -8,5 +8,18 @@
     "start": "node game.js"
   },
   "author": "Nick Ferrara",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NickLoveRamen/TicTacToe.git"
+  },
+  "keywords": [
+    "TicTacToe",
+    "CLI",
+    "Game"
+  ],
+  "bugs": {
+    "url": "https://github.com/NickLoveRamen/TicTacToe/issues"
+  },
+  "homepage": "https://github.com/NickLoveRamen/TicTacToe#readme"
 }
