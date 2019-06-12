@@ -67,6 +67,84 @@ function displayOptionsReturnSelected(title,options,callback){
     process.stdin.on('keypress', listener);
 }
 
+//display field with selected position highlighted
+function displayFieldReturnCoord(title){
+    //this function will be keeping track of a selection index to manage which 
+    //options are currently "selected"
+    //should only update the display when a keypress is detected
+    //pressing enter will return the option which is "selected" at the time the 
+    //user presses enter
+
+    return new Promise((resolve)=>{
+        //keep track of which is currently selected
+        var x = y = 0;
+
+        //define key press codes
+        const up = 'up';
+        const down = 'down';
+        const left = 'left';
+        const right = 'right';
+        const enter = 'return';
+
+        //display options
+        clear();
+        display(title,x,y);
+
+        //function to remove the listener
+        function remove(){
+            process.stdin.removeListener('keypress',listener);
+        }
+
+        //listener
+        function listener(str, key){
+            //check for ctrl + c
+            if (key.ctrl && key.name === 'c') {
+                process.exit();
+            }
+
+            //check for up,down and enter
+            switch (key.name){
+                case up : {//user pressed up arrow key
+                    if(y > 0){
+                        y --;
+                    }
+                    display(title,x,y);
+                    break;
+                }
+                case down : {//user pressed down arrow key
+                    if(y < TTT.ROWS -1){
+                        y ++;
+                    }
+                    display(title,x,y);
+                    break;
+                }
+                case left : {
+                    if(x > 0){
+                        x --;
+                    }
+                    display(title,x,y);
+                    break;
+                }
+                case right : {
+                    if(x < TTT.COLS - 1){
+                        x ++;
+                    }
+                    display(title,x,y);
+                    break;
+                }
+                case enter : {//user pressed enter
+                    remove();
+                    resolve({"x" : x,"y" : y});
+                    break;
+                }
+            }
+        }
+
+        //set the listener
+        process.stdin.on('keypress', listener);
+    });
+}
+
 //helper function
 function displayWithOptions(index, title, options){
     //define the colors of selected options
@@ -94,6 +172,9 @@ function displayWithOptions(index, title, options){
 //displays the title at the top then displays the tic tac toe
 //field with the current configuration
 function display(title,x,y){
+    //clear screen 
+    clear();
+
     var i,j,temp;
 
     //define the colors of selected options
@@ -140,7 +221,7 @@ function display(title,x,y){
         }
 
         for(j = 0; j < TTT.COLS; j++){
-            if(i == x && j == y){
+            if(j == x && i == y){
                 temp += " " + selected + TTT.getSymbol(j,i) + reset + ' ║';
             }else temp += " " + TTT.getSymbol(j,i) + ' ║';
             
@@ -168,4 +249,4 @@ function display(title,x,y){
     console.log(temp);//write final line
 }
 
-module.exports = {display,displayOptionsReturnSelected,clear};
+module.exports = {display,displayOptionsReturnSelected,displayFieldReturnCoord,clear};

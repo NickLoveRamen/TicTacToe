@@ -28,7 +28,7 @@ module.exports.init = function(){
 
 //place symbol function
 module.exports.placeSymbol = function(x,y,sym){
-    field [x][y] = sym;
+    field[x][y] = sym;
 }
 
 module.exports.getSymbol = function(x,y){

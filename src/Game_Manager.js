@@ -35,7 +35,7 @@ function start(){
 }
 
 //two player game
-function playTwoPlayer(){
+async function playTwoPlayer(){
     //define game states
     const state_WIN = 'WIN';
     const state_TIE = 'TIE';
@@ -47,25 +47,37 @@ function playTwoPlayer(){
     //keep track of who won
     var winner = 'unknown';
 
-    //alternate between player one and player two
+    //loop until game is over
     while (game_state == state_IP){
-        //prompt player 1(X) and get thier coordinate selection
-        console.log("in main game loop. setting game stte to TIE...");
-        game_state = state_TIE;
-        //insert their move
+        //player one's turn
+        var coord = await UI.displayFieldReturnCoord("PLAYER ONE'S TURN");
+        //insert
+        TTT.placeSymbol(coord.x,coord.y,TTT.X);
+        //check
+        isOver((res)=>{
+            winner = res.winner;
+            game_state = res.game_state;
+        });
 
-        //check if game over (win or tie)
-
-        //prompt player 2(O) and get thier coordinate selection
-
-        //insert their move
-
-        //check if game over (win or tie)
+        //check if player one ended the game
+        if(game_state == state_IP){
+            //player two's turn
+            var coord = await UI.displayFieldReturnCoord("PLAYER TWO'S TURN");
+            //insert
+            TTT.placeSymbol(coord.x,coord.y,TTT.O);
+            //check
+            isOver((res)=>{
+                winner = res.winner;
+                game_state = res.game_state;
+            });
+        }
+        
     }
 
     //give an ending message based on gamestate
     var endingMessage = '';
     if(game_state != state_TIE){
+        if(winner == TTT.X) winner = ""
         endingMessage = winner + ' WINS!';
     }
     else endingMessage = 'TIE GAME';
@@ -84,79 +96,12 @@ function playTwoPlayer(){
 
 //one player game
 
-//play 2 player
-async function twoplayer(){
-    var gamestate = {"over" : false,
-                     "winner" : ""};
-
-    while(!gamestate.over){
-        //X player (player1) goes first
-        await prompt(TTT.X);
-
-        //check if game over
-        isOver(function(res){
-            gamestate = res;
-        });
-            
-
-        if(!gamestate.over){
-            //O player (player2) goes second
-            await prompt(TTT.O);
-            //check if game over
-            isOver(function(res){
-                gamestate = res;
-            });
-        }
-    }
-    
-    return new Promise((resolve) => {
-        resolve(gamestate.winner);
-    });
-}
-
- function prompt(symbol){
-    var player;
-    if(symbol == TTT.X) player = "PLAYER ONE"
-    else if (symbol == TTT.O) player = "PLAYER TWO"
-
-    TTT.clear();
-    TTT.display(player + "'S TURN",-1,-1);
-
-    return new Promise((async function (resolve){
-        var coords = await getCoordinates(symbol);
-        while (coords == null){
-            coords = await getCoordinates(symbol);
-        }
-        TTT.placeSymbol(coords.x,coords.y,symbol);
-        resolve();
-    }));
-    
-}
-
-function getCoordinates(symbol){
-    var rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    return new Promise((resolve) => {
-        rl.question('Enter coordinates to place a ' + symbol + ' (x y):', (input) => {
-            rl.close();
-            input = input.split(" ");
-            if((input[0] >= TTT.ROWS || input[0] < 0) || (input[1] >= TTT.COLS || input[1] < 0)){
-                console.log("Those coordinates are out of bounds, try again: ");
-                resolve(null);
-            }else if (TTT.getSymbol(input[0],input[1]) != TTT.BLANK){
-                console.log("that spot is taken, try again: ");
-                resolve(null);
-            }else{
-                resolve({"x" : input[0],"y" : input[1]});
-            }
-        });
-    })
-    
-}
-
 function isOver(callback){
+    //define game states
+    const state_WIN = 'WIN';
+    const state_TIE = 'TIE';
+    const state_IP = 'IN PROGRESS';
+
     // cardinal directions
     const E = 0;
     const SE = 1;
@@ -164,8 +109,8 @@ function isOver(callback){
     const SW = 3;
 
     //gamestate to be returned
-    var gamestate = {"over" : false,
-                     "winner" : ""};
+    var gamestate = {"game_state" : state_IP,
+                     "winner" : 'unknown'};
     
     //iterate through array and check for TTT.win number of consecutive symbols
     var i,j,symbol;
@@ -175,33 +120,34 @@ function isOver(callback){
     for(i = 0; i < TTT.ROWS; i++){
         for(j = 0; j < TTT.COLS; j++){
             //check if space is blank
-            if(symbol = TTT.getSymbol(i,j) == TTT.BLANK){
+            symbol = TTT.getSymbol(i,j);
+            if(symbol  == TTT.BLANK){
                 full = false;
             }else{//symbol is either TTT.X or TTT.O
                 //check E (to the right)
                 if(getConsec(E,symbol,i,j,true) >= TTT.WIN){
-                    gamestate.over = true;
+                    gamestate.game_state = state_WIN;
                     gamestate.winner = symbol;
                     callback(gamestate);
                 }
 
                 //check SE (down and to right)
                 if(getConsec(SE,symbol,i,j,true) >= TTT.WIN){
-                    gamestate.over = true;
+                    gamestate.game_state = state_WIN;
                     gamestate.winner = symbol;
                     callback(gamestate);
                 }
 
                 //check S (down)
                 if(getConsec(S,symbol,i,j,true) >= TTT.WIN){
-                    gamestate.over = true;
+                    gamestate.game_state = state_WIN;
                     gamestate.winner = symbol;
                     callback(gamestate);
                 }
 
                 //check SW (down and left)
                 if(getConsec(SW,symbol,i,j,true) >= TTT.WIN){
-                    gamestate.over = true;
+                    gamestate.game_state = state_WIN;
                     gamestate.winner = symbol;
                     callback(gamestate);
                 }
@@ -211,8 +157,8 @@ function isOver(callback){
     }//end checking each index
 
     //see if TIE
-    if(full && !gamestate.over){//board is full but we havnt found a winner
-        gamestate.over = true;
+    if(full && gamestate.game_state == state_IP){//board is full but we havnt found a winner
+        gamestate.game_state = state_TIE;
         callback(gamestate);
     }
 
