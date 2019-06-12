@@ -12,6 +12,7 @@ const BLANK = " ";
 
 module.exports = {X,O,BLANK,ROWS,COLS,WIN};
 
+//initialize the array based on the row and col lengths
 module.exports.init = function(){
     field.length = ROWS;
 
@@ -25,15 +26,16 @@ module.exports.init = function(){
     }
 }
 
-//clear function
+//clear screen function
 module.exports.clear = function(){
     process.stdout.write('\x1b[2J');
 }
 
 //display function
+//displays the title at the top then displays the tic tac toe
+//field with the current configuration
 module.exports.display = function(title){
-    var i,j
-    var temp = "";
+    var i,j,temp;
 
     //print title
     console.log("   " + title);

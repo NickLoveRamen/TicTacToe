@@ -1,5 +1,5 @@
 const TTT = require("./TTT_Field");
-const rl = require("readline");
+const rl = require('readline');
 rl.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
 
@@ -9,7 +9,7 @@ module.exports.displayOptionsReturnSelected = function(title,options){
     //should only update the display when a keypress is detected
     //pressing enter will return the option which is "selected" at the time the 
     //user presses enter
-
+/* 
     //keep track of which is currently selected
     var index = 0;
 
@@ -22,7 +22,7 @@ module.exports.displayOptionsReturnSelected = function(title,options){
     display(index,title,options);
 
 
-    //get keypresses
+    //listener function
     async function listener(key,data){
         //check for ctrl + c
         if (data.ctrl && data.name === 'c') {
@@ -54,6 +54,8 @@ module.exports.displayOptionsReturnSelected = function(title,options){
             }
         }
     }
+
+
     process.stdin.on('keypress', listener);
 
     //end the listener
@@ -65,7 +67,32 @@ module.exports.displayOptionsReturnSelected = function(title,options){
 
     process.stdin.on('end', () => {
         process.stdout.write('end');
-    });
+    }); */
+
+    //function to remove the listener
+    function remove(){
+        process.stdin.removeListener('keypress',listener);
+    }
+
+    //listener
+    function listener(str, key){
+        if(key.ctrl && key.name == 'c'){
+            process.exit();
+        } else if(key.name == 'p'){
+            remove();
+            console.log("listnener removed. exiting UI function");
+            return 'p'
+        } else {
+            console.log('key pressed: ' + str);
+            console.log(key);
+        }
+    }
+
+    //set the listener
+    await process.stdin.on('keypress', listener);
+
+    //prompt
+    console.log("press keys!");
 }
 
 //helper function
